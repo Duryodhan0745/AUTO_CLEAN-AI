@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AutoPrep AI — ML Data Preprocessing Engine</title>
+<link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <a class="nav-logo" href="#">
+    <div class="logo-mark">⚡</div>
+    AutoPrep<span style="color:var(--accent)">AI</span>
+  </a>
+  <div class="nav-right">
+    <div class="nav-status">
+      <div class="status-dot"></div>
+      System Ready
+    </div>
+    <span class="nav-ver">v1.0</span>
+  </div>
+</nav>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- PAGE: UPLOAD -->
+<!-- ════════════════════════════════════════════════════════════ -->
+<section id="page-upload" class="page-section">
+  <div class="hero">
+    <div class="hero-grid-bg"></div>
+    <div class="hero-content">
+
+      <div class="hero-eyebrow">ML Data Preprocessing Engine</div>
+
+      <h1>
+        Raw CSV In.<br/>
+        <span class="line-accent">ML-Ready Out.</span>
+      </h1>
+
+      <p class="hero-sub">
+        Drop your dataset. AutoPrep handles missing values,<br/>
+        outliers, encoding, scaling, VIF, RFE &amp; PCA.<br/>
+        Download clean data + a reproducible pipeline script.
+      </p>
+
+      <!-- Upload Zone -->
+      <div class="upload-zone" id="upload-zone">
+        <div class="upload-icon-wrap">📄</div>
+        <h3>Drop your file here</h3>
+        <p>or click to browse your files</p>
+        <span class="csv-tag">All file types</span>
+        <input type="file" id="file-input"/>
+      </div>
+
+      <div id="upload-alert" class="hidden" style="max-width:560px;width:100%;"></div>
+
+      <!-- Upload button — no onclick, handled via JS -->
+      <button class="btn btn-primary mt-4" id="upload-btn">
+        ⬆ Upload CSV
+      </button>
+
+      <!-- Feature grid -->
+      <div class="feature-grid">
+        <div class="feature-cell">
+          <div class="feature-icon">🔍</div>
+          <div class="feature-name">Profiling</div>
+          <div class="feature-desc">Deep data analysis</div>
+        </div>
+        <div class="feature-cell">
+          <div class="feature-icon">🧹</div>
+          <div class="feature-name">Cleaning</div>
+          <div class="feature-desc">Missing + outliers</div>
+        </div>
+        <div class="feature-cell">
+          <div class="feature-icon">⚙️</div>
+          <div class="feature-name">Engineering</div>
+          <div class="feature-desc">Encode, scale, VIF, RFE</div>
+        </div>
+        <div class="feature-cell">
+          <div class="feature-icon">📜</div>
+          <div class="feature-name">Pipeline</div>
+          <div class="feature-desc">Exportable Python script</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- PAGE: DASHBOARD -->
+<!-- ════════════════════════════════════════════════════════════ -->
+<section id="page-dashboard" class="page-section hidden">
+  <div class="dashboard">
+
+    <!-- Header -->
+    <div class="dash-header">
+      <div>
+        <div class="dash-title">Dataset Overview</div>
+        <div class="dash-filename" id="dash-filename"></div>
+      </div>
+      <div class="flex gap-3">
+        <button class="btn btn-secondary" id="back-btn">← New Upload</button>
+        <button class="btn btn-primary" id="run-btn">⚡ Run Pipeline</button>
+      </div>
+    </div>
+
+    <div id="dash-alert" class="hidden"></div>
+
+    <!-- Stats row -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">Rows</div>
+        <div class="stat-value accent" id="stat-rows">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Columns</div>
+        <div class="stat-value" id="stat-cols">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Missing Cells</div>
+        <div class="stat-value yellow" id="stat-missing">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Num / Cat</div>
+        <div class="stat-value small" id="stat-types">—</div>
+      </div>
+    </div>
+
+    <!-- Main grid -->
+    <div class="dashboard-grid">
+
+      <!-- LEFT SIDEBAR -->
+      <div class="sidebar">
+
+        <!-- Pipeline Mode -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">⚡ Pipeline Mode</div>
+          </div>
+          <div class="mode-selector">
+            <div class="mode-card active" data-mode="auto">
+              <div class="mode-icon">🤖</div>
+              <div class="mode-name">Auto</div>
+              <div class="mode-desc">Smart defaults</div>
+            </div>
+            <div class="mode-card" data-mode="custom">
+              <div class="mode-icon">🎛</div>
+              <div class="mode-name">Custom</div>
+              <div class="mode-desc">Configure each step</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Column Removal -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🗑 Remove Columns</div>
+            <span class="text-xs" id="remove-count" style="color:var(--red)"></span>
+          </div>
+          <div class="flex gap-2 mb-4">
+            <button class="btn btn-secondary btn-sm" id="select-all-btn">All</button>
+            <button class="btn btn-secondary btn-sm" id="clear-sel-btn">Clear</button>
+          </div>
+          <div class="col-list" id="col-remove-list"></div>
+        </div>
+
+        <!-- CUSTOM CONFIG PANEL -->
+        <div id="custom-config-panel" class="hidden">
+
+          <!-- Missing Values -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">🔧 Missing Values</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Global Default Strategy</label>
+              <div class="select-wrap">
+                <select class="form-select" id="missing-global">
+                  <option value="mean">Mean (numeric default)</option>
+                  <option value="median">Median</option>
+                  <option value="mode">Mode</option>
+                  <option value="drop_rows">Drop Rows</option>
+                </select>
+              </div>
+            </div>
+            <div class="section-title">Per-Column Override</div>
+            <div class="per-col-config" id="per-col-missing"></div>
+          </div>
+
+          <!-- Outliers -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">📊 Outliers (IQR)</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Strategy</label>
+              <div class="select-wrap">
+                <select class="form-select" id="outlier-strategy">
+                  <option value="cap">Cap (Winsorise)</option>
+                  <option value="remove">Remove Rows</option>
+                  <option value="keep">Keep As-Is</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Encoding -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">🔢 Encoding</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Strategy</label>
+              <div class="select-wrap">
+                <select class="form-select" id="encoding-strategy">
+                  <option value="onehot">One-Hot Encoding</option>
+                  <option value="label">Label Encoding</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Scaling -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">⚖️ Scaling</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Strategy</label>
+              <div class="select-wrap">
+                <select class="form-select" id="scaling-strategy">
+                  <option value="standard">Standard (Z-score)</option>
+                  <option value="minmax">Min-Max</option>
+                  <option value="robust">Robust (IQR-based)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- VIF -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">🔗 VIF Filter</div>
+              <label class="toggle">
+                <input type="checkbox" id="vif-toggle" checked/>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div id="vif-options">
+              <div class="form-group">
+                <label class="form-label">VIF Threshold (default: 10)</label>
+                <input type="number" class="form-input" id="vif-threshold" value="10" min="1" max="100" step="1"/>
+              </div>
+            </div>
+          </div>
+
+          <!-- RFE -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">🎯 RFE Feature Selection</div>
+              <label class="toggle">
+                <input type="checkbox" id="rfe-toggle"/>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div id="rfe-options" class="hidden">
+              <div class="form-group">
+                <label class="form-label">Target Column</label>
+                <div class="select-wrap">
+                  <select class="form-select" id="rfe-target"></select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Number of Features to Select (0 = auto)</label>
+                <input type="number" class="form-input" id="rfe-n" value="0" min="0" step="1"/>
+              </div>
+            </div>
+          </div>
+
+          <!-- PCA -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">🌀 PCA (95% variance)</div>
+              <label class="toggle">
+                <input type="checkbox" id="pca-toggle"/>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <p class="text-muted text-xs" style="line-height:1.7;">
+              Reduces dimensionality retaining 95% of explained variance. Applied after all other steps.
+            </p>
+          </div>
+
+        </div>
+        <!-- end custom-config-panel -->
+
+      </div>
+      <!-- end sidebar -->
+
+      <!-- RIGHT: preview + profiles -->
+      <div style="display:flex;flex-direction:column;gap:16px;">
+
+        <!-- Data Preview -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">👁 Data Preview</div>
+            <span class="text-xs text-muted">First 8 rows</span>
+          </div>
+          <div id="preview-table"></div>
+        </div>
+
+        <!-- Column Profiles -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">📋 Column Profiles</div>
+          </div>
+          <div id="col-profiles"></div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Bottom action bar -->
+    <div class="flex" style="justify-content:center;margin-top:28px;gap:12px;">
+      <button class="btn btn-secondary" onclick="document.getElementById('back-btn').click()">← Back</button>
+      <button class="btn btn-primary" style="min-width:180px;" onclick="document.getElementById('run-btn').click()">
+        ⚡ Run Pipeline
+      </button>
+    </div>
+
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- PAGE: PROCESSING -->
+<!-- ════════════════════════════════════════════════════════════ -->
+<section id="page-processing" class="page-section hidden">
+  <div class="processing-wrap">
+
+    <div class="processing-header">
+      <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:10px;">
+        <div class="spinner"></div>
+        <div class="processing-title">Processing Dataset</div>
+      </div>
+      <div class="processing-sub">Running your preprocessing pipeline…</div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar" id="process-bar"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">🔄 Pipeline Steps</div>
+      </div>
+      <div class="pipeline-steps" id="processing-steps"></div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- PAGE: RESULTS -->
+<!-- ════════════════════════════════════════════════════════════ -->
+<section id="page-results" class="page-section hidden">
+  <div class="results-wrap">
+
+    <!-- Success hero -->
+    <div class="results-hero">
+      <div class="results-icon">✅</div>
+      <h2>Pipeline Complete!</h2>
+      <p class="text-muted text-sm" style="margin-top:8px;">
+        Your dataset has been preprocessed and is ready for ML training.
+      </p>
+
+      <!-- Row diff -->
+      <div class="diff-stats">
+        <div class="diff-block">
+          <div class="diff-label">Rows Before</div>
+          <div class="diff-num before" id="res-rows-before">—</div>
+        </div>
+        <div class="diff-arrow">→</div>
+        <div class="diff-block">
+          <div class="diff-label">Rows After</div>
+          <div class="diff-num after" id="res-rows-after">—</div>
+        </div>
+      </div>
+
+      <!-- Col diff -->
+      <div class="diff-stats" style="margin-top:12px;">
+        <div class="diff-block">
+          <div class="diff-label">Cols Before</div>
+          <div class="diff-num before" id="res-cols-before">—</div>
+        </div>
+        <div class="diff-arrow">→</div>
+        <div class="diff-block">
+          <div class="diff-label">Cols After</div>
+          <div class="diff-num after" id="res-cols-after">—</div>
+        </div>
+      </div>
+
+      <!-- Download buttons -->
+      <div class="download-buttons">
+        <a class="btn btn-success" id="dl-csv-btn" href="#" download="cleaned_dataset.csv">
+          ⬇ Download Cleaned CSV
+        </a>
+        <a class="btn btn-secondary" id="dl-pipeline-btn" href="#" download="pipeline.py">
+          📜 Download Pipeline Script
+        </a>
+      </div>
+    </div>
+
+    <!-- Transformation log -->
+    <div class="card mb-4">
+      <div class="card-header">
+        <div class="card-title">📋 Transformation Log</div>
+      </div>
+      <div class="log-entries" id="result-logs"></div>
+    </div>
+
+    <!-- ydata profiling report -->
+    <div class="card mb-4" id="report-card" style="display:none;">
+      <div class="card-header">
+        <div class="card-title">🔬 Full Profiling Report</div>
+        <span class="text-xs" style="color:var(--accent);">ydata-profiling</span>
+      </div>
+      <p class="text-muted text-xs" style="margin-bottom:16px;line-height:1.8;">
+        Complete statistical analysis of your cleaned dataset — correlations, distributions, missing value patterns, and more.
+      </p>
+      <div style="border:1px solid var(--border);overflow:hidden;">
+        <iframe id="report-iframe"
+          src=""
+          style="width:100%;height:780px;border:none;background:#fff;"
+          loading="lazy">
+        </iframe>
+      </div>
+      <div class="flex" style="justify-content:flex-end;margin-top:12px;">
+        <a class="btn btn-secondary btn-sm" id="dl-report-btn" href="#" download="profiling_report.html">
+          ⬇ Download Report HTML
+        </a>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex" style="justify-content:center;gap:12px;">
+      <button class="btn btn-secondary" id="restart-btn">🔄 Process New File</button>
+    </div>
+
+  </div>
+</section>
+
+<!-- JS loaded at bottom — CORRECT PATHS: api.js and app.js -->
+<script src="api.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
